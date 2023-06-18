@@ -1,0 +1,4 @@
+{
+  "mongoURI":"mongodb+srv://adva:adva123@cluster0.aglv9mu.mongodb.net/expenses?retryWrites=true&w=majority",
+  "jwtSecret": "re_myJwtSecret"
+}
