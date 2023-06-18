@@ -1,9 +1,84 @@
-
 const express = require('express');
 const router = express.Router();
 const Costs = require('../models/Costs');
 const {computedCostsModel, costInfoComputedModel}  = require('../models/ComputedCosts');
 
+// Update a cost by ID
+router.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const { user_id, date, description, category, sum } = req.body;
+
+  try {
+    const updatedCost = await Costs.findByIdAndUpdate(id, {
+      user_id,
+      date,
+      description,
+      category,
+      sum
+    }, { new: true });
+
+    if (!updatedCost) {
+      return res.status(404).json({ error: 'Cost not found' });
+    }
+
+    res.json(updatedCost);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete a cost by ID
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedCost = await Costs.findByIdAndRemove(id);
+
+    if (!deletedCost) {
+      return res.status(404).json({ error: 'Cost not found' });
+    }
+
+    res.json({ message: 'Cost deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+//get all costs, must send at least user_id
+router.get('/', async (req, res) => {
+  const { year, month, category, user_id } = req.query;
+
+  try {
+    let query = { user_id: user_id };
+
+    if (year) {
+      query.date = { $regex: `^${year}` };
+    }
+
+    if (month) {
+      const regexMonth = month.padStart(2, '0'); // Add leading zero if needed
+      const regexPattern = `-${regexMonth}$`;
+      if (query.date) {
+        query.date.$regex += regexPattern;
+      } else {
+        query.date = { $regex: regexPattern };
+      }
+    }
+
+    if (category) {
+      query.category = category;
+    }
+
+    const costs = await Costs.find(query);
+
+    res.json(costs);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 //addcost post
 //summery - first adding the cost to the Costs collection 
@@ -17,17 +92,26 @@ router.post('/', async (req, res) => {
     checkAddcostSchema(req.body);
     
     const user_id = req.body.user_id;
-    const year = req.body.year;
-    const month = req.body.month;
-    const day = req.body.day;
+    const datestring = req.body.date;
+    const date = new Date(datestring);
+    const year  = date.getFullYear();
+    const month  = date.getMonth() + 1;
+    const day  = date.getDate();
+
+    
     const description = req.body.description;
     const category = req.body.category;
     const sum = req.body.sum;
 
+    console.log("date: " + datestring)
+    console.log("year: " + year)
+    console.log("month: " + month)
+    console.log("day: " + day)
+
     //the ComputedCosts header (the identifier)
     const computedHeader = `${user_id}-${year}-${month}`;
 
-    const cost_instance = new Costs({ user_id: user_id, year: year, month: month, day:day, description: description, category:category, sum:sum });
+    const cost_instance = new Costs({ user_id: user_id, date: datestring, description: description, category:category, sum:sum });
 
     //save to db the cost instance
     await cost_instance.save();
@@ -96,25 +180,8 @@ function checkAddcostSchema(cost) {
   if (!cost.user_id) {
     throw new Error('no user_id');
   }
-  if (!cost.year) {
-    throw new Error('no year');
-  }
-
-  if (!cost.month ) {
-    throw new Error('no month');
-  } else{
-    if(Number(cost.month) > 12 || Number(cost.month) < 1){
-            throw new Error('month incorrect');
-    }
-  }
-
-  if (!cost.day) {
-    throw new Error('no day');
-  }
-  else{
-    if(Number(cost.day) > 31 || Number(cost.day) < 1){
-            throw new Error('day incorrect');
-    }
+  if (!cost.date) {
+    throw new Error('no date');
   }
 
   if (!cost.description) {

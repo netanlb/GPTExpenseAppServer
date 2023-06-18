@@ -8,7 +8,7 @@ const config = require('config');
 
 //add all routers
 const aboutRouter = require('./routes/about');
-const addcostRouter = require('./routes/addcost');
+const costRouter = require('./routes/cost');
 const reportRouter = require('./routes/report');
 const authRouter = require('./routes/auth');
 const usersRouter = require('./routes/users');
@@ -53,7 +53,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 //add the routers
 app.use('/about', aboutRouter);
-app.use('/addcost', addcostRouter);
+app.use('/cost', costRouter);
 app.use('/report', reportRouter);
 app.use('/auth', authRouter);
 app.use('/users', usersRouter);

@@ -4,19 +4,11 @@ const mongoose = require('mongoose');
 //this is a single cost model, that goes into a costs collection in db
 const costsSchema = new mongoose.Schema({
     user_id:{
-      type: Number,
+      type: String,
       required: true,
     },
-    year: {
-      type: Number,
-      required: true,
-    },
-    month: {
-      type: Number,
-      required: true,
-    },
-    day: {
-      type: Number,
+    date: {
+      type: String,
       required: true,
     },
     description: {
