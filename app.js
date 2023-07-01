@@ -19,35 +19,25 @@ async function tryStartServer() {
 
   const app = express();
 
-  // connecting to the atlas mongo server db
-  console.log("tryStartServer - mongo atlas");
-  try {
-    await mongoose
-      .connect(config.get("mongoURI"), {
-        useUnifiedTopology: true,
-        useNewUrlParser: true,
-      })
-      .then(() => console.log("mongo db connected"))
-      .then(() => {
-        app.listen(5000, () =>
-          console.log("tryStartServer - mongo atlas started")
-        );
-      });
-
-    //app.listen(5000, ()=> console.log("started on 5000"))
-  } catch (err) {
-    console.log("failed to connect");
-    console.log(err);
-  }
-
   // view engine setup
-  app.set("views", path.join(__dirname, "views"));
-  app.set("view engine", "pug");
   app.use(logger("dev"));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(cookieParser());
-  app.use(express.static(path.join(__dirname, "public")));
+  // app.use(express.static(path.join(__dirname, "public")));
+
+  // connecting to the atlas mongo server db
+  console.log("tryStartServer - mongo atlas");
+  try {
+    await mongoose.connect(config.get("mongoURI"), {
+      useUnifiedTopology: true,
+      useNewUrlParser: true,
+    });
+    console.log("Connected to MongoDB");
+  } catch (err) {
+    console.log("Failed to connect to MongoDB");
+    console.error(err);
+  }
 
   //add the routers
   app.use("/about", aboutRouter);
@@ -55,6 +45,15 @@ async function tryStartServer() {
   app.use("/report", reportRouter);
   app.use("/auth", authRouter);
   app.use("/users", usersRouter);
+
+  // Error handling middleware
+  app.use(function (err, req, res, next) {
+    console.error(err.stack);
+    res.status(500).send("Something broke!");
+  });
+
+  const port = process.env.PORT || 5000;
+  app.listen(port, () => console.log(`Server started on port ${port}`));
 }
 
 //run the start of the server

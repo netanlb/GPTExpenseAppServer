@@ -43,6 +43,7 @@ router.post("/", (req, res) => {
 });
 
 router.get("/user", auth, (req, res) => {
+  console.log("user");
   User.findById(req.user.id) // req.user.id comes from the decoded token
     .select("-password")
     .then((user) => {
