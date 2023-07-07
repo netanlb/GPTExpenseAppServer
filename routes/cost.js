@@ -53,6 +53,45 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+router.get("/groupBy", async (req, res) => {
+  const { user_id, year, month } = req.query;
+  try {
+    // Use current year and month if not provided
+    let currentYear = year ? Number(year) : new Date().getFullYear();
+    let currentMonth = month ? Number(month) : new Date().getMonth();
+
+    // Build start and end date for the query
+    const startDate = new Date(currentYear, currentMonth, 1);
+    const endDate = new Date(currentYear, currentMonth + 1, 1);
+
+    const groupedCosts = await Costs.aggregate([
+      {
+        $match: {
+          user_id: user_id,
+          date: { $gte: startDate, $lt: endDate }, // Add condition for date
+        },
+      },
+      {
+        $group: {
+          _id: "$category",
+          category: { $first: "$category" },
+          totalSum: { $sum: "$sum" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          category: 1,
+          totalSum: 1,
+        },
+      },
+    ]);
+    res.json(groupedCosts);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to retrieve grouped costs." });
+  }
+});
+
 //get all costs, must send at least user_id
 router.get("/", async (req, res) => {
   const { year, month, category, user_id } = req.query;

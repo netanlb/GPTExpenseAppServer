@@ -7,9 +7,7 @@ const mongoose = require("mongoose");
 const config = require("config");
 
 //add all routers
-const aboutRouter = require("./routes/about");
 const costRouter = require("./routes/cost");
-const reportRouter = require("./routes/report");
 const authRouter = require("./routes/auth");
 const usersRouter = require("./routes/users");
 
@@ -40,9 +38,7 @@ async function tryStartServer() {
   }
 
   //add the routers
-  app.use("/about", aboutRouter);
   app.use("/cost", costRouter);
-  app.use("/report", reportRouter);
   app.use("/auth", authRouter);
   app.use("/users", usersRouter);
 
