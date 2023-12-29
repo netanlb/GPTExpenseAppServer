@@ -90,6 +90,7 @@ router.get("/groupBy", async (req, res) => {
 
 //get all costs, must send at least user_id
 router.get("/", async (req, res) => {
+  console.log(req);
   const { year, month, category, user_id } = req.query;
 
   try {

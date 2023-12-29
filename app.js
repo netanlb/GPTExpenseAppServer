@@ -5,11 +5,13 @@ const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const mongoose = require("mongoose");
 const config = require("config");
+require("dotenv").config();
 
 //add all routers
 const costRouter = require("./routes/cost");
 const authRouter = require("./routes/auth");
 const usersRouter = require("./routes/users");
+const openaiRouter = require("./routes/openai");
 
 //try to open the server on the port
 async function tryStartServer() {
@@ -22,6 +24,7 @@ async function tryStartServer() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(cookieParser());
+  mongoose.set("strictQuery", false);
   // app.use(express.static(path.join(__dirname, "public")));
 
   // connecting to the atlas mongo server db
@@ -41,6 +44,7 @@ async function tryStartServer() {
   app.use("/cost", costRouter);
   app.use("/auth", authRouter);
   app.use("/users", usersRouter);
+  app.use("/openai", openaiRouter);
 
   // Error handling middleware
   app.use(function (err, req, res, next) {
