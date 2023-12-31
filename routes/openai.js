@@ -9,7 +9,7 @@ router.post("/", async (req, res) => {
       req.body,
       {
         headers: {
-          Authorization: `Bearer ${process.env.GPT_API_KEY}`,
+          Authorization: `Bearer ${process.env.API_KEY}`,
           "Content-Type": "application/json",
         },
       }
@@ -17,8 +17,7 @@ router.post("/", async (req, res) => {
     console.log("SUCCESS!!");
     res.send(response.data);
   } catch (error) {
-    // console.error("Error connecting to OpenAI:", error);
-    console.error(error);
+    console.error("Error connecting to OpenAI:", error);
     res.status(500).send({ error: error, message: "Internal Server Error" });
   }
 });

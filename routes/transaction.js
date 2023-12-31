@@ -1,14 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const Costs = require("../models/Costs");
+const Transaction = require("../models/transaction");
 
-// Update a cost by ID
+// Update a transaction by ID
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
-  const { user_id, date, description, category, sum } = req.body;
+  const { user_id, date, description, category, sum, transactionType } =
+    req.body;
 
   try {
-    const updatedCost = await Costs.findByIdAndUpdate(
+    const updatedTransaction = await Transaction.findByIdAndUpdate(
       id,
       {
         user_id,
@@ -16,33 +17,34 @@ router.put("/:id", async (req, res) => {
         description,
         category,
         sum,
+        transactionType,
       },
       { new: true }
     );
 
-    if (!updatedCost) {
-      return res.status(404).json({ message: "Cost not found" });
+    if (!updatedTransaction) {
+      return res.status(404).json({ message: "Transaction not found" });
     }
 
-    res.json(updatedCost);
+    res.json(updatedTransaction);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
-// Delete a cost by ID
+// Delete a transaction by ID
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    const deletedCost = await Costs.findByIdAndRemove(id);
+    const deletedTransaction = await Transaction.findByIdAndRemove(id);
 
-    if (!deletedCost) {
-      return res.status(404).json({ error: "Cost not found" });
+    if (!deletedTransaction) {
+      return res.status(404).json({ error: "Transaction not found" });
     }
 
-    res.status(200).json({ message: "Cost deleted successfully" });
+    res.status(200).json({ message: "Transaction deleted successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
@@ -60,11 +62,12 @@ router.get("/groupBy", async (req, res) => {
     const startDate = new Date(currentYear, currentMonth, 1);
     const endDate = new Date(currentYear, currentMonth + 1, 1);
 
-    const groupedCosts = await Costs.aggregate([
+    const groupedTransactions = await Transaction.aggregate([
       {
         $match: {
           user_id: user_id,
           date: { $gte: startDate, $lt: endDate }, // Add condition for date
+          transactionType: "expense",
         },
       },
       {
@@ -82,16 +85,17 @@ router.get("/groupBy", async (req, res) => {
         },
       },
     ]);
-    res.json(groupedCosts);
+    res.json(groupedTransactions);
   } catch (error) {
-    res.status(500).json({ message: "Failed to retrieve grouped costs." });
+    res
+      .status(500)
+      .json({ message: "Failed to retrieve grouped transactions." });
   }
 });
 
-//get all costs, must send at least user_id
+//get all transactions, must send at least user_id
 router.get("/", async (req, res) => {
-  console.log(req);
-  const { year, month, category, user_id } = req.query;
+  const { year, month, category, user_id, transactionType } = req.query;
 
   try {
     let query = { user_id: user_id };
@@ -131,11 +135,18 @@ router.get("/", async (req, res) => {
     if (category) {
       query.category = Array.isArray(category) ? { $in: category } : category;
     }
+    console.log(transactionType);
+    if (transactionType) {
+      console.log(transactionType);
+      query.transactionType = Array.isArray(transactionType)
+        ? { $in: transactionType }
+        : transactionType;
+    }
 
     // find and sort in descending order of date
-    const costs = await Costs.find(query).sort({ date: -1 });
+    const transactions = await Transaction.find(query).sort({ date: -1 });
 
-    res.status(200).json(costs);
+    res.status(200).json(transactions);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
@@ -143,49 +154,54 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
+  console.log(req);
   try {
-    checkAddcostSchema(req.body);
+    checkAddtransactionSchema(req.body);
 
-    const { user_id, description, category, sum } = req.body;
+    const { user_id, description, category, sum, transactionType } = req.body;
     const datestring = req.body.date;
 
     const date = new Date(datestring);
 
-    const cost_instance = new Costs({
+    const transaction_instance = new Transaction({
       user_id,
       date,
       description,
       category,
+      transactionType,
       sum,
     });
 
-    //save to db the cost instance
-    const savedCost = await cost_instance.save();
-    console.log("cost_instance.save()");
+    //save to db the transaction instance
+    const savedTransaction = await transaction_instance.save();
+    console.log("transaction_instance.save()");
 
-    res.status(200).json(savedCost);
+    res.status(200).json(savedTransaction);
   } catch (err) {
     res.status(400).send(err.message);
   }
 });
 
 //check if we got all the params needed to run all needed stuff
-function checkAddcostSchema(cost) {
-  if (!cost.user_id) {
+function checkAddtransactionSchema(transaction) {
+  if (!transaction.user_id) {
     throw new Error("no user_id");
   }
-  if (!cost.date) {
+  if (!transaction.date) {
     throw new Error("no date");
   }
 
-  if (!cost.description) {
+  if (!transaction.description) {
     throw new Error("no description");
   }
-  if (!cost.category) {
+  if (!transaction.category) {
     throw new Error("no category");
   }
-  if (!cost.sum) {
+  if (!transaction.sum) {
     throw new Error("no sum");
+  }
+  if (!transaction.transactionType) {
+    throw new Error("no transaction type");
   }
 }
 
