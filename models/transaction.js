@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 
-//this is a single cost model, that goes into a costs collection in db
-const costsSchema = new mongoose.Schema({
+const transactionSchema = new mongoose.Schema({
   user_id: {
     type: String,
     required: true,
@@ -21,6 +20,7 @@ const costsSchema = new mongoose.Schema({
       "Housing",
       "Utilities",
       "Food",
+      "Groceries",
       "Transportation",
       "Healthcare",
       "Education",
@@ -31,10 +31,15 @@ const costsSchema = new mongoose.Schema({
       "Other",
     ],
   },
+  transactionType: {
+    type: String,
+    requred: true,
+    enum: ["expense", "income", "saving"],
+  },
   sum: {
     type: Number,
     required: true,
   },
 });
 
-module.exports = mongoose.model("Costs", costsSchema);
+module.exports = mongoose.model("Transaction", transactionSchema);

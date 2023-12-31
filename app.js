@@ -9,9 +9,9 @@ const cors = require("cors"); // Require CORS
 require("dotenv").config();
 
 //add all routers
-const costRouter = require("./routes/cost");
+const transactionRouter = require("./routes/transaction");
 const authRouter = require("./routes/auth");
-const usersRouter = require("./routes/users");
+const userRouter = require("./routes/user");
 const openaiRouter = require("./routes/openai");
 
 //try to open the server on the port
@@ -43,9 +43,9 @@ async function tryStartServer() {
   }
 
   //add the routers
-  app.use("/cost", costRouter);
+  app.use("/transaction", transactionRouter);
   app.use("/auth", authRouter);
-  app.use("/users", usersRouter);
+  app.use("/user", userRouter);
   app.use("/openai", openaiRouter);
 
   // Error handling middleware
